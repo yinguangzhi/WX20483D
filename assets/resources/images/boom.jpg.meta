@@ -1,0 +1,44 @@
+{
+  "ver": "1.0.22",
+  "importer": "image",
+  "imported": true,
+  "uuid": "a3f7c775-bbea-45f4-aedb-3a05586f13a3",
+  "files": [
+    ".jpg",
+    ".json"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "a3f7c775-bbea-45f4-aedb-3a05586f13a3@6c48a",
+      "displayName": "boom",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "a3f7c775-bbea-45f4-aedb-3a05586f13a3"
+      },
+      "ver": "1.0.21",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "hasAlpha": false,
+    "type": "texture",
+    "redirect": "a3f7c775-bbea-45f4-aedb-3a05586f13a3@6c48a",
+    "compressSettings": {
+      "useCompressTexture": true,
+      "presetId": "b6LiZsD/pKeroIWI5AXZkJ"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "splash-setting": {
+    "url": "C:\\HD\\CreatorProject\\Unity2048\\ALUnity2048\\assets\\texture\\load\\logo2.png",
+    "displayRatio": 0.36,
+    "totalTime": 0,
+    "clearColor": {
+      "x": 0.35294117647058826,
+      "y": 0.8392156862745098,
+      "z": 0.9803921568627451,
+      "w": 1
+    },
+    "displayWatermark": false
+  },
+  "textureCompressConfig": {
+    "userPreset": {
+      "b6LiZsD/pKeroIWI5AXZkJ": {
+        "name": "wepg",
+        "options": {
+          "web": {
+            "webp": 70
+          },
+          "miniGame": {
+            "webp": 80
+          },
+          "android": {
+            "webp": 80
+          }
+        }
+      }
+    }
+  }
+}

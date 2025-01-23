@@ -1,0 +1,32 @@
+{
+  "general": {
+    "designResolution": {
+      "width": 720,
+      "height": 1280
+    }
+  },
+  "layer": [
+    {
+      "name": "unit",
+      "value": 1
+    },
+    {
+      "name": "fb_2d",
+      "value": 2
+    },
+    {
+      "name": "ui_background",
+      "value": 4
+    },
+    {
+      "name": "fb_top",
+      "value": 8
+    }
+  ],
+  "physics": {
+    "defaultMaterial": {
+      "rollingFriction": 0.1,
+      "friction": 0.1
+    }
+  }
+}

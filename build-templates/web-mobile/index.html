@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Cocos Creator | 2048 3D</title>
+
+  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
+  <meta name="viewport"
+        content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
+
+  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- force webkit on 360 -->
+  <meta name="renderer" content="webkit"/>
+  <meta name="force-rendering" content="webkit"/>
+  <!-- force edge on IE -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <!-- force full screen on some browser -->
+  <meta name="full-screen" content="yes"/>
+  <meta name="x5-fullscreen" content="true"/>
+  <meta name="360-fullscreen" content="true"/>
+
+  <!--fix fireball/issues/3568 -->
+  <!--<meta name="browsermode" content="application">-->
+  <meta name="x5-page-mode" content="app">
+
+  <!--<link rel="apple-touch-icon" href=".png" />-->
+  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
+
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+
+</head>
+<body>
+  <div id="GameDiv">
+      <div id="Cocos3dGameContainer">
+        <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+      </div>
+    </div>
+
+<!-- <script src="./vconsole.min.js"></script>
+<script type="text/javascript">
+    // open web debugger console
+    window.VConsole && (window.vConsole = new VConsole());
+</script> -->
+
+<!-- <script src="https://www.facebook.com/assets.php/en_US/fbinstant.7.1.js"></script> -->
+<script>
+    window.YoungVersion = "1.0.0";
+    window.loadPercent = 0;
+
+    window.isCocosEngineReady = false;
+    window.isFacebookReady = false;
+    window.couldGoToGame = false;
+    window.hasGoToGame = false;
+    window.launchScene = "";
+
+    
+
+    function setLoading(percent) {
+
+      if (window.hasGoToGame) return;
+
+      window.loadPercent += percent;
+
+      if (window.loadPercent >= 92) {
+        if (!window.couldGoToGame) window.loadPercent = 92;
+      }
+
+      if (window.loadPercent >= 99) {
+        window.loadPercent = 99;
+        if (window.couldGoToGame && window.realGoGameFromIndex) window.realGoGameFromIndex();
+      }
+
+      FBInstant.setLoadingProgress(window.loadPercent);
+
+      let _million = window.couldGoToGame ? 30 : 120;
+      let _per = window.couldGoToGame ? 4 : 1;
+
+      setTimeout(function () {
+        setLoading(_per)
+      }, _million);
+    }
+
+    function loadFacebookFail() {
+      console.log("2048 Load FB SDK Fail");
+
+      loadFacebookSDK();
+    }
+
+    function loadFacebookSuccess() {
+      FBInstant.initializeAsync()
+        .then(function () {
+
+          setLoading(1);
+          window.isFacebookReady = true;
+
+          // if (window.customEnterGame) window.customEnterGame();
+
+        })
+        .catch(function () {
+
+          FBInstant.initializeAsync()
+            .then(function () {
+
+              setLoading(1);
+              window.isFacebookReady = true;
+              // if (window.customEnterGame) window.customEnterGame();
+            })
+            .catch(function () { });
+
+        });
+    }
+
+    function loadFacebookSDK() {
+      var element = document.getElementById('fbInstant');
+      if (element && element.parentElement == document) {
+        document.removeChild(element);
+      }
+      var instant = document.createElement('script');
+      instant.id = 'fbInstant';
+      instant.src = 'https://connect.facebook.net/en_US/fbinstant.7.1.js';
+      instant.onload = loadFacebookSuccess;
+      instant.onerror = loadFacebookFail;
+      document.body.appendChild(instant);
+    }
+
+    loadFacebookSDK();
+
+</script>
+
+<!-- Polyfills bundle. -->
+<script src="src/polyfills.bundle.js" charset="utf-8"> </script>
+
+<!-- SystemJS support. -->
+<script src="src/system.bundle.js" charset="utf-8"> </script>
+
+<!-- Import map -->
+<script src="src/import-map.json" type="systemjs-importmap" charset="utf-8"> </script>
+
+<script>
+    System.import('./index.js').catch(function(err) { console.error(err); })
+</script>
+
+</body>
+</html>
