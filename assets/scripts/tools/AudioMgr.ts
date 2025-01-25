@@ -179,7 +179,7 @@ export class AudioMgr extends BaseSigleton<AudioMgr> {
 
         let url2 = 'Audio/' + url;
         
-        LoaderMgr.Instance().loadAssetAsync(url2, AudioClip, null, 0)
+        LoaderMgr.Instance().loadAssetAsync("subGame",url2, AudioClip, null, 0)
             .then((clip: AudioClip) =>
             {
                 this.audioMap[url] = clip;

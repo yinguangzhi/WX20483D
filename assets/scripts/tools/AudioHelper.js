@@ -39,6 +39,7 @@ module.exports =
 
     playAudio(url, loop, isMusic) {
 
+        return;
         if (!url) return;
 
 
@@ -72,6 +73,9 @@ module.exports =
     },
 
     realPlayAudio(clip, loop, isMusic) {
+        
+        return;
+        
         let volume = 1;
 
          if (isMusic) {

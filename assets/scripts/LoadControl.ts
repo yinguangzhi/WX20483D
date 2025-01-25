@@ -26,8 +26,9 @@ import UIHelper from "./tools/UIHelper.js";
 
 import { DataManager } from './tools/DataManager';
 import { PermanentManager } from './PermanentManager';
-import { ALHelper } from './tools/ALHelper';
 import { AudioMgr } from './tools/AudioMgr';
+import { WeChatTool } from './WeChatTool';
+import { WebBridge } from './WebBridge';
 
 //注意注意 
 //阿里小游戏不能同时动态加载太多资源，否则会无响应，不知为何
@@ -54,16 +55,16 @@ export class LoadControl extends Component {
     }
 
     start() {
-        ALHelper.Instance().init();
+        WeChatTool.Instance().init();
 
         UIHelper.init();
         
         this.loadCnt = 0;
 
         
-        ALHelper.Instance().checkVibrate();
+        WeChatTool.Instance().checkVibrate();
 
-        ALHelper.Instance().login((state : boolean) => {
+        WeChatTool.Instance().login((state : boolean) => {
 
             console.log("readUserDataFromPlatform : ");
             DataManager.Instance().readUserDataFromPlatform(() => {
@@ -71,12 +72,11 @@ export class LoadControl extends Component {
                 AudioMgr.Instance().setAudioState(DataManager.Instance().userData.audio == 1);
                 AudioMgr.Instance().setMusicState(DataManager.Instance().userData.music == 1, false);
 
-                ALHelper.Instance().initVideoADBefore(true);
-                ALHelper.Instance().initFullADBefore(true);
+                WebBridge.Instance().loadVideo();
+                WebBridge.Instance().loadFull();
                 
                 setTimeout(() => {
-                    
-                    PermanentManager.instance.displayBannerInCommon();
+                    WebBridge.Instance().showBanner();
 
                 }, 5000);
 

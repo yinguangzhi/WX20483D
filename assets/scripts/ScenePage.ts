@@ -7,11 +7,12 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
-import { _decorator, Component, Node, UITransform, Label, director, SceneAsset, Texture2D, SpriteFrame, assetManager, resources } from 'cc';
+import { _decorator, Component, Node, UITransform, Label, director, SceneAsset, Texture2D, SpriteFrame, assetManager, resources, AssetManager } from 'cc';
 const { ccclass, property } = _decorator;
 
 import { GameParamsHelper } from './GameParamsHelper';
 import { AssetPreLoader } from './tools/AssetPreLoader';
+import { SubpackageMgr } from './SubpackageMgr';
 
  
 //注意注意 
@@ -126,59 +127,62 @@ export class ScenePage extends Component {
             
             this.scheduleOnce(() =>
             {
-
-                for (let i = 0; i < 40; i++) {
-                    let val = Math.pow(2, i + 1);
-
-                    let arg = val.toString();
+                SubpackageMgr.Instance().loadBundle("subGame",(_bundle : AssetManager.Bundle) =>
+                {
+                    for (let i = 0; i < 40; i++) {
+                        let val = Math.pow(2, i + 1);
+    
+                        let arg = val.toString();
+                        
+                        if (val > (1024 * 1024 * 1024 * 8)) { 
+                            arg = val / (1024 * 1024 * 1024) + 'G';
+                            
+                        } 
+                        else if (val > (1024 * 1024 * 8)) { 
+                            arg = val / (1024 * 1024) + 'M';
+                            
+                        } 
+                        else if (val > 8192) {
+                            arg = val / 1024 + 'K';
+                        }
+                
+                        // AssetPreLoader.Instance().addAsset(`images/${arg}/texture`, Texture2D, 0.01, (asset : Texture2D) => { 
+                        _bundle.load(`images/${arg}/texture`, Texture2D, (err,asset : Texture2D) => { 
+                                
+                            GameParamsHelper.Instance().textures[arg] = asset;
+                            console.log(arg,"  ",asset);
+                            this.preLoadCnt++;
                     
-                    if (val > (1024 * 1024 * 1024 * 8)) { 
-                        arg = val / (1024 * 1024 * 1024) + 'G';
+                            if (i == 39) this.plScene(_bundle);
+                        })
+                
+                        // setTimeout(() => {
                         
-                    } 
-                    else if (val > (1024 * 1024 * 8)) { 
-                        arg = val / (1024 * 1024) + 'M';
+                        //     console.log("enter game load texture begin .. " + `images/${arg}/texture`);
                         
-                    } 
-                    else if (val > 8192) {
-                        arg = val / 1024 + 'K';
+                        //     LoaderMgr.Instance().loadAsset(`images/${arg}/texture`, Texture2D, (asset) => { 
+                                
+                        //         GameParamsHelper.Instance().textures[arg] = asset;
+                                
+                        //         this.preLoadCnt++;
+                        
+                        //     },0)
+                        // }, i * 600);
+                        
                     }
-            
-                    AssetPreLoader.Instance().addAsset(`images/${arg}/texture`, Texture2D, 0.01, (asset : Texture2D) => { 
-                            
-                        GameParamsHelper.Instance().textures[arg] = asset;
-                        
-                        this.preLoadCnt++;
-                
-                        if (i == 39) this.plScene();
-                    })
-            
-                    // setTimeout(() => {
-                    
-                    //     console.log("enter game load texture begin .. " + `images/${arg}/texture`);
-                    
-                    //     LoaderMgr.Instance().loadAsset(`images/${arg}/texture`, Texture2D, (asset) => { 
-                            
-                    //         GameParamsHelper.Instance().textures[arg] = asset;
-                            
-                    //         this.preLoadCnt++;
-                    
-                    //     },0)
-                    // }, i * 600);
-                    
-                }
+    
+                    // AssetPreLoader.Instance().beginPreLoad();
+                })
 
-                AssetPreLoader.Instance().beginPreLoad();
-                
             },0.4)
         }
 
         console.log("......................begin load scene")
     }
 
-    plScene()
+    plScene(_bundle : AssetManager.Bundle)
     {
-        director.preloadScene(this.scene, (error, sceneAsset: SceneAsset) => {
+        _bundle.loadScene(this.scene, (error, sceneAsset: SceneAsset) => {
             this.sceneAsset = sceneAsset;
      
             console.log("..............load scene game complete");

@@ -1,6 +1,7 @@
 
-import { __private, _decorator, Asset, Component, instantiate, isValid, Node, Prefab, resources, v3 } from 'cc';
+import { __private, _decorator, Asset, AssetManager, Component, instantiate, isValid, Node, Prefab, resources, v3 } from 'cc';
 import BaseSigleton from './BaseSingleton';
+import { SubpackageMgr } from '../SubpackageMgr';
 const { ccclass, property } = _decorator;
 
 /**
@@ -95,27 +96,41 @@ export class LoaderMgr extends BaseSigleton<LoaderMgr> {
         })
     }
 
-    loadAssetAsync(url: string, type: any, callback: any, addRefCnt: number) {
+    loadAssetAsync(_bundleName : string,url: string, type: any, callback: any, addRefCnt: number) {
+
         return new Promise((resolve, reject) => {
+
             let _find = this.assetMap[url];
 
-            if (!_find || !isValid(_find.asset)) {
-                resources.load(url, type, (err, asset) => {
-                    if (!err) {
-                        _find = { url: url, asset: asset };
-                        this.assetMap[url] = _find;
-
-                        // console.log(_find);
-                        if (addRefCnt && addRefCnt > 0) {
-                            for (let i = 0; i < addRefCnt; i++) asset.addRef();
-                        }
-
-                        resolve(asset);
+            if (!_find || !isValid(_find.asset)) 
+            {
+                SubpackageMgr.Instance().loadBundle(_bundleName,(_bd : AssetManager.Bundle) =>
+                {
+                    if(!_bd)
+                    {
+                        reject("_bundle : " + _bundleName + " is not exit");
+                        return;
                     }
-                    else reject(err);
-                });
+
+                    _bd.load(url, type, (err, asset) => {
+
+                        if (!err) {
+                            _find = { url: url, asset: asset };
+                            this.assetMap[url] = _find;
+    
+                            // console.log(_find);
+                            if (addRefCnt && addRefCnt > 0) {
+                                for (let i = 0; i < addRefCnt; i++) asset.addRef();
+                            }
+    
+                            resolve(asset);
+                        }
+                        else reject(err);
+                    }); 
+                })
             }
-            else {
+            else 
+            {
                 if (addRefCnt && addRefCnt > 0) {
                     for (let i = 0; i < addRefCnt; i++) _find.asset.addRef();
                 }
@@ -125,9 +140,9 @@ export class LoaderMgr extends BaseSigleton<LoaderMgr> {
     }
 
 
-    loadAssetResAsync(url: string, type: Prefab | any, active: boolean, parent: Node, callback: any, addRefCnt: number) {
+    loadAssetResAsync(_bundleName : string,url: string, type: Prefab | any, active: boolean, parent: Node, callback: any, addRefCnt: number) {
         return new Promise((resolve, reject) => {
-            this.loadAssetAsync(url, type, callback, addRefCnt)
+            this.loadAssetAsync(_bundleName,url, type, callback, addRefCnt)
                 .then((asset: Prefab) => {
                     if (!isValid(parent)) {
                         reject("err");
