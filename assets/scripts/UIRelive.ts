@@ -7,6 +7,7 @@ import Observer from "./tools/Observer.js";
 import UIHelper from "./tools/UIHelper.js";
 import { PermanentManager } from './PermanentManager';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
+import { WebBridge } from './WebBridge';
 /**
  * Predefined variables
  * Name = UIRelive
@@ -53,7 +54,7 @@ export class UIRelive extends Component {
 
         this.scheduleOnce(() => {
 
-            PermanentManager.instance.displayBannerInCommon();
+            WebBridge.Instance().showBanner();
             
         }, 0.4)
 
@@ -99,7 +100,7 @@ export class UIRelive extends Component {
         this.unschedule(this.coolDownAction);
         if (this.progressTween) this.progressTween.stop();
 
-        PermanentManager.instance.displayVideoInCommon(true,(state) => {
+        WebBridge.Instance().displayVideo("",true,(state) => {
             if (state) {
 
                 if (this.callback) this.callback(true);

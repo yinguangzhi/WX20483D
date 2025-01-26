@@ -1,9 +1,6 @@
 
 import { _decorator, Component, Node, game, Label, UIOpacity, tween } from 'cc';
 import { ScenePage } from './ScenePage';
-import { GameParamsHelper } from './GameParamsHelper';
-import { ALHelper } from './tools/ALHelper';
-import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 
 const { ccclass, property } = _decorator;
 
@@ -48,7 +45,6 @@ export class PermanentManager extends Component {
         this.setLoadingState(false,"start");
         this.tipOpacity.opacity = 0;
 
-        // ALHelper.Instance().setDesc(this.desc);
     }
     start() {
         // [3]
@@ -86,57 +82,6 @@ export class PermanentManager extends Component {
 
         this.tipOpacity.opacity = 0;
         tween(this.tipOpacity).to(0.3, { opacity: 255 }).delay(1).to(0.5, {opacity : 0}).start();
-    }
-
-    displayBannerInCommon() {
-
-        ALHelper.Instance().displayBanner((state) => { 
-            
-        });
-    }
-    
-    displayFullInCommon(callback) { 
-
-        let displayCall = () => { 
-
-            AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
-
-            ALHelper.Instance().displayFullAD(() => {
-
-                callback && callback();
-            })
-
-        }
-
-
-        displayCall();
-    }
-
-    
-    displayVideoInCommon(initBefore,callback) { 
-
-        let displayCall = () => { 
-
-
-            if (ALHelper.Instance().isVideoADLoad()) {
-
-                AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
-                
-                ALHelper.Instance().displayVideoAD((state) => {
-
-                    callback && callback(state);
-                })
-            }
-            else {
-                this.setADTip(GameParamsHelper.Instance().ad);
-                callback && callback(false);
-                
-             }
-
-        }
-
-        ALHelper.Instance().initVideoADBefore(initBefore);
-        displayCall();
     }
     
 }

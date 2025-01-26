@@ -14,10 +14,9 @@ import { GameStatus } from './tools/GameStatus';
 const { ccclass, property } = _decorator;
 
 import Observer from "./tools/Observer.js";
-import { PermanentManager } from './PermanentManager';
-import { ALHelper } from './tools/ALHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import GameUtility from './tools/GameUtility';
+import { WebBridge } from './WebBridge';
 /**
  * Predefined variables
  * Name = UIControl
@@ -150,7 +149,7 @@ export class UIControl extends Component {
         if (count < 1) {
             AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
             
-            PermanentManager.instance.displayVideoInCommon(true, (state) => {
+            WebBridge.Instance().displayVideo("",true, (state) => {
 
                 if (state) {
                     GameControl.Instance.createUnit(GameStatus.CubeType.Any);
@@ -173,7 +172,7 @@ export class UIControl extends Component {
         if (!Observer.fireBtn("ad", 500)) return;
 
         AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
-        ALHelper.Instance().displayVideoAD((state : boolean) => { 
+        WebBridge.Instance().displayVideo("",true,(state : boolean) => { 
 
             if(state)  GameControl.Instance.createUnit(GameStatus.CubeType.Bomb);
         })

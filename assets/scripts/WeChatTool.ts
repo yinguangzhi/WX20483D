@@ -302,7 +302,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     }
 
     /** 分享 */
-    shareAppMessage()
+    shareAppMessage(_callback : any)
     {
         if(!this.isWeChat)
         {
@@ -556,6 +556,12 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
             });;
     }
 
+    isFullMaxDelta() {
+        
+        let _time = this.currentTime();
+        return _time - this.lastFullTime > 27;
+    }
+
     isFullLoaded()
     {
         return this.fullAd && this.fullState == AD_STATE.SUCCESS;
@@ -566,6 +572,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         return this.fullAd && this.fullState == AD_STATE.LOADING;
     }
 
+    lastFullTime = -10;
     fullID = '';
     fullAd : any = null;
     fullState = 0;
@@ -614,6 +621,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     
     showFull(_callback : any)
     {
+        let self = this;
         this.fullDisplayCallback = _callback;
 
         if(!this.isWeChat || this.isEmpty(this.fullID))
@@ -628,7 +636,14 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
             return;
         }
 
-        let self = this;
+        if(self.fullState != AD_STATE.SUCCESS)
+        {
+            this.fullDisplayCallback && this.fullDisplayCallback(false);
+            return;
+        }
+
+        self.lastFullTime = this.currentTime();
+
         this.fullAd.show()
             .then(() => {
                 self.fullState = AD_STATE.NOT_LOAD;
@@ -640,6 +655,12 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
                 console.log("fullAd 广告显示失败",err);
                 this.fullDisplayCallback && this.fullDisplayCallback(false);
             });;
+    }
+
+    currentTime() {
+        let now = new Date();
+        let seconds = now.getTime() / 1000;
+        return seconds;
     }
 
     postDataToServer(_callback : any)

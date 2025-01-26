@@ -14,12 +14,13 @@ const { ccclass, property } = _decorator;
  *
  */
 
+
 import Observer from "./tools/Observer.js";
 import UIHelper from "./tools/UIHelper.js";
 import GameConfig from "./GameConfig.js";
-import { PermanentManager } from './PermanentManager';
-import { ALHelper } from './tools/ALHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
+import { WeChatTool } from './WeChatTool';
+import { WebBridge } from './WebBridge';
 
 @ccclass('UISettlement')
 export class UISettlement extends Component {
@@ -54,8 +55,8 @@ export class UISettlement extends Component {
 
         this.scheduleOnce(() => {
 
-            ALHelper.Instance().initVideoADBefore(true);
-            PermanentManager.instance.displayBannerInCommon();
+            WebBridge.Instance().loadVideo();
+            WebBridge.Instance().showBanner();
         }, 0.4)
     }
 
@@ -86,7 +87,7 @@ export class UISettlement extends Component {
 
         if (!Observer.fireBtn("settlement", 500)) return;
 
-        PermanentManager.instance.displayFullInCommon(() => { 
+        WebBridge.Instance().displayFull("",false,() => { 
 
             this.callback && this.callback(true);
             
@@ -99,7 +100,7 @@ export class UISettlement extends Component {
 
         AudioMgr.Instance().playAudio(AUDIO_NAME.click);
         if (!Observer.fireBtn("settlement", 500)) return;
-        ALHelper.Instance().updateToPlatform("", null, null);
+        WeChatTool.Instance().shareAppMessage(null);
     }
 }
 

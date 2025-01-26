@@ -11,9 +11,9 @@ import { GameStatus } from './tools/GameStatus';
 import { PermanentManager } from './PermanentManager';
 import { RoadControl } from './RoadControl';
 import { GameParamsHelper } from './GameParamsHelper';
-import { ALHelper } from './tools/ALHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
-import GameUtility from './tools/GameUtility';
+import { WebBridge } from './WebBridge';
+import { WeChatTool } from './WeChatTool';
 
 const { ccclass, property } = _decorator;
 
@@ -406,7 +406,7 @@ export class GameControl extends Component {
 
             if (half || _reward) { 
                 
-                if(ALHelper.Instance().isFullMaxDelta()) this.popBind(value);
+                if(WeChatTool.Instance().isFullMaxDelta()) this.popBind(value);
             }
         }
         
@@ -420,8 +420,8 @@ export class GameControl extends Component {
 
         if (value >= 64) { 
     
-            ALHelper.Instance().initFullADBefore(true);
-            ALHelper.Instance().initVideoADBefore(true);
+            WebBridge.Instance().loadFull();
+            WebBridge.Instance().loadVideo();
         }
         
 
@@ -456,7 +456,7 @@ export class GameControl extends Component {
         
         console.log("game is over");
 
-        ALHelper.Instance().initVideoADBefore(true);
+        WebBridge.Instance().loadVideo();
         
         PermanentManager.instance.setLoadingState(true,"gameOver");
         this.scheduleOnce(() => {
@@ -506,7 +506,7 @@ export class GameControl extends Component {
 
             this.isRealGameOver = true;
 
-            ALHelper.Instance().initFullADBefore(true);
+            WebBridge.Instance().loadVideo();
             
             PermanentManager.instance.setLoadingState(true,"settlement");
             UIHelper.displayUI(UIHelper.uiType.panel1, "UISettlement", UIControl.Instance.node, true, (obj) => {

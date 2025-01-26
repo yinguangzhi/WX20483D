@@ -12,6 +12,7 @@ import { UIControl } from './UIControl';
 import { GameParamsHelper } from './GameParamsHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import GameUtility from './tools/GameUtility';
+import { WebBridge } from './WebBridge';
 
 /**
  * Predefined variables
@@ -67,7 +68,7 @@ export class UIBind extends Component {
     start() {
         
         this.scheduleOnce(() => {
-            PermanentManager.instance.displayBannerInCommon();
+            WebBridge.Instance().showBanner();
         }, 0.4)
     }
 
@@ -139,7 +140,7 @@ export class UIBind extends Component {
 
         if (!Observer.fireBtn("ad", 500)) return;
 
-        PermanentManager.instance.displayFullInCommon(() => { 
+        WebBridge.Instance().displayFull("",false,() => { 
 
             if (this.bindType == 1) { 
 
@@ -157,7 +158,7 @@ export class UIBind extends Component {
 
         if (!Observer.fireBtn("ad", 500)) return;
 
-        PermanentManager.instance.displayVideoInCommon(true, (state) => {
+        WebBridge.Instance().displayVideo("",true, (state) => {
 
             if (state) { 
                 let count = 2;

@@ -4,8 +4,8 @@ import { GameControl } from './GameControl';
 import { GameObjPool } from "./GameObjPool";
 import { GameStatus } from './tools/GameStatus';
 import { DataManager } from './tools/DataManager';
-import { ALHelper } from './tools/ALHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
+import { WeChatTool } from './WeChatTool';
 
 
 const { ccclass, property } = _decorator;
@@ -302,7 +302,7 @@ export class Unit extends Component {
             GameObjPool.Instance().put("effect",effect);
         }, 0.8)
         
-        if (DataManager.Instance().userData.vibrate == 1) ALHelper.Instance().vibrateAction(0.006);
+        if (DataManager.Instance().userData.vibrate == 1) WeChatTool.Instance().vibrateAction();
     }
 
     onCollisionEnter(event: ICollisionEvent) {

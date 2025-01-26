@@ -45,6 +45,7 @@ export class WebBridge extends BaseSingleton<WebBridge> {
                     displayCall();
                 };
             }
+            else displayCall();
 
             this.loadFull();
 
@@ -100,6 +101,7 @@ export class WebBridge extends BaseSingleton<WebBridge> {
                     displayCall();
                 };
             }
+            else displayCall();
 
             this.loadVideo();
 
@@ -112,12 +114,12 @@ export class WebBridge extends BaseSingleton<WebBridge> {
         WeChatTool.Instance().loadBanner(_show,null);
     }
 
-    showBanner()
+    showBanner(_callback : any = null)
     {
         WeChatTool.Instance().showBanner(null);
     }
 
-    
+
     hideBanner()
     {
         WeChatTool.Instance().hideBanner(null);
