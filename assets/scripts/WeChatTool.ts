@@ -9,10 +9,14 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     isFullValid : boolean = false;
     isBannerValid : boolean = false;
     isBindShare : boolean = true;
-    isCouldSubscribe : boolean = false;
+    /** 是否可以订阅游戏更新 */
+    isCanSubscribeInNewApp : boolean = false;
+    subscribedInNewApp = false;
 
     useUserScope : boolean = false;
 
+    needAuth = false;
+    _userInfo : any =null;
     wxSdk : any = null;
 
     currSDKVersion = "";
@@ -52,20 +56,39 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
 
         let self = this;
         //@ts-ignore
-        wx.login(
+        // self.wxSdk.login(
+        //     {
+        //         success (res : any) 
+        //         {
+        //             console.log("wx login success : ");
+        //             self.onGetSetting(res.code,_callback);
+        //         },
+        //         fail (res : any)
+        //         {
+        //             console.log("wx login fail : ",JSON.stringify(res));
+        //         }
+        //     })
+
+
+        self.wxSdk.login({
+            success: (loginRes : any) => 
             {
-                success (res : any) 
-                {
-                    console.log("wx login success : ");
-                    self.onGetSetting(res.code,_callback);
-                },
-                fail (res : any)
-                {
-                    console.log("wx login fail : ",JSON.stringify(res));
+                self.onGetSetting();
+
+                if (loginRes.code) {
+                    console.log("登录 code:", loginRes.code);
+                    // 这里可将 code 发送给服务器换取 openid/session_key
+                    self.getUserProfile(_callback); // 继续获取用户信息
+                } else {
+                    console.error("登录失败:", loginRes.errMsg);
                 }
-            })
+            },
+            fail: (err : any) => {
+                self.onGetSetting();
 
-
+                console.error("wx.login 调用失败:", err);
+            }
+        });
 
         if(this.isBindShare)
         {
@@ -75,109 +98,191 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         
     }
 
-    onGetSetting(code : any,_callback : any)
+    // 2. 获取用户信息
+    private getUserProfile(_callback : any) 
     {
         let self = this;
-        //@ts-ignore
-        wx.getSetting({
+        self.wxSdk.getUserProfile({
+            desc: '获取信息用于展示', // 必填
+            success: (profileRes : any) => {
+                console.log("用户信息:", profileRes.userInfo);
+                self._userInfo = profileRes.userInfo;
+                self.onAuthSuccess(_callback); // 授权成功处理
+            },
+            fail: (err : any) => {
+                console.log("用户拒绝授权:", err);
+                self.showAuthTips(_callback); // 提示用户重新授权
+            }
+        });
+    }
+
+    // 3. 授权成功处理
+    private onAuthSuccess(_callback : any) {
+        // 这里可跳转场景、更新 UI 或发送数据到服务器
+        console.log("授权成功，用户昵称:", this._userInfo.nickName);
+        _callback && _callback();
+    }
+
+    // 4. 显示重新授权提示
+    private showAuthTips(_callback : any) {
+
+        console.log("显示重新授权提示:");
+
+        let self = this;
+        self.wxSdk.showModal({
+            title: '提示',
+            content: '需要您授权才能正常使用',
+            confirmText: '重新授权',
+            success: (res : any) => {
+                if (res.confirm) 
+                {
+                    this.getUserProfile(_callback); // 再次尝试获取
+                }
+                else 
+                {
+                    if(!self.needAuth)
+                    {
+                        _callback && _callback();
+                    }
+                }
+            },
+            fail : (err : any) =>
+            {
+                console.log("显示重新授权提示 失败 :",err);
+                if(!self.needAuth)
+                {
+                    _callback && _callback();
+                }
+            }
+        });
+    }
+
+    private onGetSetting()
+    {
+        let self = this;
+
+        self.wxSdk.getSetting({
             success(res : any)
             {
                 console.log("wx getSetting success : ",JSON.stringify(res));
-
-                if(res.authSetting["scope.userInfo"])
+                console.log("wx authSetting : ",res.authSetting);
+                console.log("wx subscriptionsSetting : ",res.subscriptionsSetting)
+                if(res.subscriptionsSetting && res.subscriptionsSetting.itemSettings)
                 {
-                    //@ts-ignore
-                    wx.getUserInfo({
-                        lang : "zh_CN",
-                        withCredentials : true,
-                        success : function(result : any)
-                        {
-                            console.log("get userinfo success : ",result);
-                            _callback && _callback();
-                        },
-                        fail : function(result : any)
-                        {
-                            console.log("get userinfo  fail : ",JSON.stringify(result));
-                            if(!self.useUserScope)
-                            {
-                                _callback && _callback(false);
-                                return;
-                            }
-                        }
-                    })
-                }
-                else
-                {
-                    console.log("cant get userInfo : ",self.useUserScope);
-
-                    if(!self.useUserScope)
-                    {
-                        _callback && _callback(false);
-                        return;
-                    }
-
-                    console.log("create button");
-
-                    //@ts-ignore
-                    let button = wx.createUserInfoButton({
-                        lang : "zh_CN",
-                        type : "text",
-                        text : "微信登录",
-                        style : {
-                            left : self.windowWidth / 2 - 50,
-                            top : self.windowHeight / 2 - 30,
-                            width : 100,
-                            height : 60,
-                            backgroundColor : "#c7a976",
-                            borderColor : "#5c5941",
-                            textAlign : "center",
-                            fontSize : 16,
-                            borderWidth : 4,
-                            borderRadius : 4,
-                            lineHeight : 60,
-                        }
-                        
-                    })
-
-                    button.onTap((res : any) =>
-                    {
-                        console.log("createUserInfoButton onTap : ",JSON.stringify(res));
-
-                        if(res.userInfo)
-                        {
-                            console.log("createUserInfoButton onTap res userInfo 1 : ",JSON.stringify(res.userInfo));
-
-                            button.destroy();
-                            _callback && _callback(true);
-                        }
-                        else
-                        {
-                            console.log("createUserInfoButton onTap res userInfo  2 : ");
-                            //@ts-ignore
-                            wx.showModal({
-                                title : "温馨提示",
-                                content : "需要您的用户信息登录游戏!",
-                                showCancel : false,
-                            })
-                        }
-                    })
-
-                    button.show();
+                    self.subscribedInNewApp = res.subscriptionsSetting.itemSettings['SYS_MSG_TYPE_WHATS_NEW'] == 'accept';
                 }
             },
             fail(err : any)
             {
                 console.log("wx getSetting fail : ",JSON.stringify(err));
-                if(!self.useUserScope)
-                {
-                    _callback && _callback(false);
-                    return;
-                }
+              
             }
 
         })
-    
     }
+
+    // onGetSetting(code : any,_callback : any)
+    // {
+    //     let self = this;
+
+    //     self.wxSdk.getSetting({
+    //         success(res : any)
+    //         {
+    //             console.log("wx getSetting success : ",JSON.stringify(res));
+
+    //             if(res.authSetting["scope.userInfo"])
+    //             {
+    //                 self.wxSdk.getUserInfo({
+    //                     lang : "zh_CN",
+    //                     withCredentials : true,
+    //                     success : function(result : any)
+    //                     {
+    //                         console.log("get userinfo success : ",result);
+    //                         _callback && _callback();
+    //                     },
+    //                     fail : function(result : any)
+    //                     {
+    //                         console.log("get userinfo  fail : ",JSON.stringify(result));
+    //                         if(!self.useUserScope)
+    //                         {
+    //                             _callback && _callback(false);
+    //                             return;
+    //                         }
+    //                     }
+    //                 })
+    //             }
+    //             else
+    //             {
+    //                 console.log("cant get userInfo : ",self.useUserScope);
+
+    //                 if(!self.useUserScope)
+    //                 {
+    //                     _callback && _callback(false);
+    //                     return;
+    //                 }
+
+    //                 console.log("create button");
+
+    //                 //@ts-ignore
+    //                 let button = wx.createUserInfoButton({
+    //                     lang : "zh_CN",
+    //                     type : "text",
+    //                     text : "微信登录",
+    //                     style : {
+    //                         left : self.windowWidth / 2 - 50,
+    //                         top : self.windowHeight / 2 - 30,
+    //                         width : 100,
+    //                         height : 60,
+    //                         backgroundColor : "#c7a976",
+    //                         borderColor : "#5c5941",
+    //                         textAlign : "center",
+    //                         fontSize : 16,
+    //                         borderWidth : 4,
+    //                         borderRadius : 4,
+    //                         lineHeight : 60,
+    //                     }
+                        
+    //                 })
+
+    //                 button.onTap((res : any) =>
+    //                 {
+    //                     console.log("createUserInfoButton onTap : ",JSON.stringify(res));
+
+    //                     if(res.userInfo)
+    //                     {
+    //                         console.log("createUserInfoButton onTap res userInfo 1 : ",JSON.stringify(res.userInfo));
+
+    //                         button.destroy();
+    //                         _callback && _callback(true);
+    //                     }
+    //                     else
+    //                     {
+    //                         console.log("createUserInfoButton onTap res userInfo  2 : ");
+    //                         //@ts-ignore
+    //                         wx.showModal({
+    //                             title : "温馨提示",
+    //                             content : "需要您的用户信息登录游戏!",
+    //                             showCancel : false,
+    //                         })
+    //                     }
+    //                 })
+
+    //                 button.show();
+    //             }
+    //         },
+    //         fail(err : any)
+    //         {
+    //             console.log("wx getSetting fail : ",JSON.stringify(err));
+    //             if(!self.useUserScope)
+    //             {
+    //                 _callback && _callback(false);
+    //                 return;
+    //             }
+    //         }
+
+    //     })
+    
+    // }
 
 
     getSystemInWeChat()
@@ -213,7 +318,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         this.isVideoValid = this.compareVersion(this.currSDKVersion,"2.0.4")  >= 0;
         this.isFullValid = this.compareVersion(this.currSDKVersion,"2.6.0")  >= 0;
         this.isBannerValid = this.compareVersion(this.currSDKVersion,"2.0.4")  >= 0;
-        this.isCouldSubscribe = this.compareVersion(this.currSDKVersion,"2.10.4")  >= 0;
+        this.isCanSubscribeInNewApp = this.compareVersion(this.currSDKVersion,"2.32.1")  >= 0;
     }
 
     vibrateAction()
@@ -275,30 +380,70 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         })
     }
 
-    /** 订阅游戏 */
+    /** 订阅游戏更新 */
     subscribeGame()
     {
+        console.log(this.isWeChat ,"  ",this.isCanSubscribeInNewApp,"  ",this.subscribedInNewApp);
         if(!this.isWeChat)
         {
             return;
         }
 
-        if(!this.isCouldSubscribe)
+        if(!this.isCanSubscribeInNewApp)
         {
             return;
         }
 
-        this.wxSdk.requestSubscribeWhatsNew({
-            msgType: 1,    // 消息类型，1=游戏更新提醒，目前只有这种类型
-            success(res : any) {
-              //订阅成功或取消订阅 都会走这里
-              console.log(res)
-               // res.confirm === true 或 false
+        if(this.subscribedInNewApp)
+        {
+            return;
+        }
+
+        console.log("this.wxSdk.requestSubscribeMessage");
+        this.wxSdk.requestSubscribeMessage({
+            tmplIds: ['SYS_MSG_TYPE_WHATS_NEW'], // 支持多个模板 ID
+            success: (res : any) => {
+                if (res['SYS_MSG_TYPE_WHATS_NEW'] === 'accept') {
+                    console.log("用户同意订阅");
+                    this.onSubscribeSuccess();
+                } else {
+                    console.log("用户拒绝订阅");
+                    this.showSubscribeGuide();
+                }
             },
-            fail(err : any) {
-              console.error(err)
+            fail: (err : any) => {
+                console.error("订阅请求失败:", err);
             }
-          })
+        });
+
+        // this.wxSdk.requestSubscribeWhatsNew({
+        //     msgType: 1,    // 消息类型，1=游戏更新提醒，目前只有这种类型
+        //     success(res : any) {
+        //       //订阅成功或取消订阅 都会走这里
+        //       console.log(res)
+        //        // res.confirm === true 或 false
+        //     },
+        //     fail(err : any) {
+        //       console.error(err)
+        //     }
+        //   })
+    }
+
+    private onSubscribeSuccess() {
+        // 订阅成功逻辑（如保存订阅状态到服务器）
+    }
+
+    private showSubscribeGuide() {
+        this.wxSdk.showModal({
+            title: '提示',
+            content: '开启订阅后可及时接收新功能通知~',
+            confirmText: '去开启',
+            success: (res : any) => {
+                if (res.confirm) {
+                    this.subscribeGame(); // 重新请求
+                }
+            }
+        });
     }
 
     /** 分享 */
@@ -333,6 +478,12 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
           })
     }
 
+    /** 打点，事件统计 */
+    reportAnalytics(eventID : string,data : any = null)
+    {
+        let d = data ? data : {};
+        this.wxSdk.reportAnalytics(eventID, d);
+    }
     /**
      * 版本号大小判断
      * @param v1 
@@ -695,5 +846,3 @@ export enum AD_STATE
     SUCCESS,
     FAIL,
 }
-
-

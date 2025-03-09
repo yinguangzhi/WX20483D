@@ -17,6 +17,7 @@ import Observer from "./tools/Observer.js";
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import GameUtility from './tools/GameUtility';
 import { WebBridge } from './WebBridge';
+import { WeChatTool } from './WeChatTool';
 /**
  * Predefined variables
  * Name = UIControl
@@ -189,6 +190,8 @@ export class UIControl extends Component {
         if (!Observer.fireBtn("start", 500)) return;
 
         this.setStartState(false);
+        
+        WeChatTool.Instance().subscribeGame();
     }
 
 

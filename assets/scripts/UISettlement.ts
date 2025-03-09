@@ -57,7 +57,8 @@ export class UISettlement extends Component {
 
             WebBridge.Instance().loadVideo();
             WebBridge.Instance().showBanner();
-        }, 0.4)
+        }, 0.4);
+
     }
 
     update (deltaTime: number) {
