@@ -21,6 +21,7 @@ import GameConfig from "./GameConfig.js";
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import { WeChatTool } from './WeChatTool';
 import { WebBridge } from './WebBridge';
+import { UR } from './UR';
 
 @ccclass('UISettlement')
 export class UISettlement extends Component {
@@ -92,7 +93,8 @@ export class UISettlement extends Component {
 
             this.callback && this.callback(true);
             
-            UIHelper.hideUI("UISettlement");
+            // UIHelper.hideUI("UISettlement");
+            UR.ins.close("UISettlement");
             
         });
     }

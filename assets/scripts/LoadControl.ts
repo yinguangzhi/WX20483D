@@ -66,23 +66,36 @@ export class LoadControl extends Component {
 
         WeChatTool.Instance().login((state : boolean) => {
 
-            console.log("readUserDataFromPlatform : ");
-            DataManager.Instance().readUserDataFromPlatform(() => {
-
-                AudioMgr.Instance().setAudioState(DataManager.Instance().userData.audio == 1);
-                AudioMgr.Instance().setMusicState(DataManager.Instance().userData.music == 1, false);
-
-                WebBridge.Instance().loadVideo();
-                WebBridge.Instance().loadFull();
-                
-                setTimeout(() => {
-                    WebBridge.Instance().showBanner();
-
-                }, 5000);
-
-                this.enterGame();
+            if(!WeChatTool.Instance().isAgreedPrivacy())
+            {
+                WeChatTool.Instance().requirePrivacyAuthorizeAfterLogin((_agree : boolean) =>
+                {
+                    this.readData();
+                })
+            }
+            else this.readData();
             
-            })
+        })
+    }
+
+    readData()
+    {
+        console.log("readWXUserData : ");
+        DataManager.Instance().readUserDataFromPlatform(() => {
+
+            AudioMgr.Instance().setAudioState(DataManager.Instance().userData.audio == 1);
+            AudioMgr.Instance().setMusicState(DataManager.Instance().userData.music == 1, false);
+
+            WebBridge.Instance().loadVideo();
+            WebBridge.Instance().loadFull();
+            
+            setTimeout(() => {
+                WebBridge.Instance().showBanner();
+
+            }, 5000);
+
+            this.enterGame();
+        
         })
     }
 

@@ -27,6 +27,7 @@
     "defaultMaterial": {
       "rollingFriction": 0.1,
       "friction": 0.1
-    }
+    },
+    "allowSleep": false
   }
 }

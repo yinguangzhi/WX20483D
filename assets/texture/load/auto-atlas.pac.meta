@@ -19,7 +19,7 @@
     "quality": 80,
     "contourBleed": true,
     "paddingBleed": true,
-    "filterUnused": true,
+    "filterUnused": false,
     "removeTextureInBundle": true,
     "removeImageInBundle": true,
     "removeSpriteAtlasInBundle": true,

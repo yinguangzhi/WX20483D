@@ -104,7 +104,7 @@ export class LoaderMgr extends BaseSigleton<LoaderMgr> {
 
             if (!_find || !isValid(_find.asset)) 
             {
-                SubpackageMgr.Instance().loadBundle(_bundleName,(_bd : AssetManager.Bundle) =>
+                SubpackageMgr.ins.loadBundle(_bundleName,(_bd : AssetManager.Bundle) =>
                 {
                     if(!_bd)
                     {

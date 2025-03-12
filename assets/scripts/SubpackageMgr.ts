@@ -16,10 +16,24 @@ const { ccclass, property } = _decorator;
  */
  
 @ccclass('SubpackageMgr')
-export class SubpackageMgr extends BaseSigleton<SubpackageMgr> {
+export class SubpackageMgr {
+
+    private static _instance : SubpackageMgr = null;
+    public static get ins()
+    {
+        if(!this._instance)
+        {
+            this._instance = new SubpackageMgr();
+        }
+        return this._instance;
+    }
+
+    private constructor()
+    { }
 
     bundleMap = {};
 
+    
     loadBundle(_bundleName : string,_callback : any)
     {
         if(this.isEmpty(_bundleName))

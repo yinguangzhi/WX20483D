@@ -60,6 +60,7 @@ export class WebBridge extends BaseSingleton<WebBridge> {
 
     displayVideo(_event : string,_wait : boolean,_callback : any)
     {
+        console.log("视频,广告")
         let displayCall = () => { 
         
             if (WeChatTool.Instance().isVideoLoaded()) {
@@ -71,11 +72,13 @@ export class WebBridge extends BaseSingleton<WebBridge> {
             else 
             {
                 console.log("video is not ready!");
+                WeChatTool.Instance().showToast("广告尚未加载!请稍后","loading");
                 _callback && _callback(false);
                 
             }
         }
 
+        _wait = false;
         
         if (!WeChatTool.Instance().isVideoLoaded()) 
         {

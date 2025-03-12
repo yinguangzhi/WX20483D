@@ -150,6 +150,7 @@ export class UIControl extends Component {
         if (count < 1) {
             AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
             
+            console.log("道具,广告")
             WebBridge.Instance().displayVideo("",true, (state) => {
 
                 if (state) {
@@ -173,6 +174,7 @@ export class UIControl extends Component {
         if (!Observer.fireBtn("ad", 500)) return;
 
         AudioMgr.Instance().playAudio(AUDIO_NAME.mute);
+        console.log("爆炸,广告")
         WebBridge.Instance().displayVideo("",true,(state : boolean) => { 
 
             if(state)  GameControl.Instance.createUnit(GameStatus.CubeType.Bomb);
@@ -191,7 +193,9 @@ export class UIControl extends Component {
 
         this.setStartState(false);
         
-        WeChatTool.Instance().subscribeGame();
+        // WeChatTool.Instance().subscribeGame();
+        // WeChatTool.Instance().requirePrivacyAuthorize(null);
+        // WeChatTool.Instance().openGameClub();
     }
 
 

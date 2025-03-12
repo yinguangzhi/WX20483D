@@ -2,6 +2,65 @@ import { _decorator, Component, Node, sys } from 'cc';
 import BaseSingleton from './tools/BaseSingleton';
 const { ccclass, property } = _decorator;
 
+// 方案二：微信云开发（无需自建后端）​
+// 使用微信云开发的 ​云函数 替代传统后端，实现解密逻辑。
+
+// ​步骤
+// ​开通云开发
+// 在微信公众平台 → 开发 → 云开发 → 开通环境（如 test-env）。
+// ​创建云函数
+// 在云开发控制台新建云函数 decodeUserInfo，代码如下：
+// javascript
+// // cloud/decodeUserInfo/index.js
+// const cloud = require('wx-server-sdk');
+// cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+
+// exports.main = async (event, context) => {
+//   const { encryptedData, iv } = event;
+//   const wxContext = cloud.getWXContext();
+//   // 解密数据
+//   try {
+//     const result = await cloud.getOpenData({
+//       list: [encryptedData, iv],
+//     });
+//     return result.data;
+//   } catch (err) {
+//     return { error: '解密失败' };
+//   }
+// };
+// ​前端调用云函数
+// javascript
+// wx.getUserProfile({
+//   desc: '用于游戏内展示',
+//   success: (res) => {
+//     wx.cloud.callFunction({
+//       name: 'decodeUserInfo',
+//       data: {
+//         encryptedData: res.encryptedData,
+//         iv: res.iv
+//       },
+//       success: (response) => {
+//         const { nickName, avatarUrl } = response.result;
+//         wx.setStorageSync('userInfo', { nickName, avatarUrl });
+//       }
+//     });
+//   }
+// });
+
+/** 授权的等级 */
+export enum AUTH_LEVEL
+{
+    /** 必须授权 */
+    MUST = 1,
+    /** 必须授权，且失败后，会弹出二次弹窗确认是否重新授权 */
+    MUST_WITH_SECOND = 2,
+
+    /** 可能授权，会调用授权接口，如果拒绝，则不再要求授权 */
+    MAYBE = 3,
+
+    /** 不需要授权 */
+    WAHTEVER = 4,
+}
 @ccclass('WeChatTool')
 export class WeChatTool extends BaseSingleton<WeChatTool> {
     isWeChat : boolean = false;
@@ -9,13 +68,28 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     isFullValid : boolean = false;
     isBannerValid : boolean = false;
     isBindShare : boolean = true;
-    /** 是否可以订阅游戏更新 */
+    /** 是否调用进入游戏圈的接口，需要根据玩家的微信版本库来进行预判断 */
+    isCanOpenGameClub = false;
+    /** 是否可以订阅游戏更新，需要根据玩家的微信版本库来进行预判断 */
     isCanSubscribeInNewApp : boolean = false;
+    /** 是否已经订阅了游戏更新推送 */
     subscribedInNewApp = false;
 
-    useUserScope : boolean = false;
 
-    needAuth = false;
+    /** 是否需要登陆成功，才能进入游戏 */
+    needLoginSuccess = false;
+
+    
+    /** 授权等级 */
+    authLevel : AUTH_LEVEL = AUTH_LEVEL.MAYBE;
+
+    /** 需要在游戏内 提供按钮，点击按钮后才能弹出隐私引导的弹窗*/
+    needPrivacyInButtonInGame = false;
+
+    /** 需要在游戏内 提供按钮，点击按钮后才能进行隐私授权*/
+    needAuthInButtonInGame = false;
+
+
     _userInfo : any =null;
     wxSdk : any = null;
 
@@ -44,6 +118,24 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         this.wxSdk = wx;
     }
 
+    setStorageSync(_key : string,_value : any)
+    {
+        if(!this.isWeChat)
+        {
+            return;
+        }
+        this.wxSdk.setStorageSync(_key,_value);
+    }
+    getStorageSync(_key : string)
+    {
+        if(!this.isWeChat)
+        {
+            return null;
+        }
+        return this.wxSdk.getStorageSync(_key);
+    }
+
+
     login(_callback : any)
     {
         if(!this.isWeChat)
@@ -55,38 +147,43 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         this.getSystemInWeChat();
 
         let self = this;
-        //@ts-ignore
-        // self.wxSdk.login(
-        //     {
-        //         success (res : any) 
-        //         {
-        //             console.log("wx login success : ");
-        //             self.onGetSetting(res.code,_callback);
-        //         },
-        //         fail (res : any)
-        //         {
-        //             console.log("wx login fail : ",JSON.stringify(res));
-        //         }
-        //     })
 
+        let _nAuth = self.authLevel == AUTH_LEVEL.MUST || self.authLevel == AUTH_LEVEL.MUST_WITH_SECOND || self.authLevel == AUTH_LEVEL.MAYBE;
 
         self.wxSdk.login({
             success: (loginRes : any) => 
             {
                 self.onGetSetting();
 
-                if (loginRes.code) {
+                if (loginRes.code) 
+                {
                     console.log("登录 code:", loginRes.code);
-                    // 这里可将 code 发送给服务器换取 openid/session_key
-                    self.getUserProfile(_callback); // 继续获取用户信息
-                } else {
+                    _callback && _callback(true);
+                } 
+                else 
+                {
+                    //登录失败，正常来说无法进入游戏
                     console.error("登录失败:", loginRes.errMsg);
+                    if(self.needLoginSuccess)
+                    {}
+                    else
+                    {
+                        _callback && _callback(false);
+                    }
                 }
             },
-            fail: (err : any) => {
+            fail: (err : any) => 
+            {
                 self.onGetSetting();
 
+                //登录失败，正常来说无法进入游戏
                 console.error("wx.login 调用失败:", err);
+                if(self.needLoginSuccess)
+                { }
+                else
+                {
+                    _callback && _callback(false);
+                }
             }
         });
 
@@ -94,11 +191,73 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         {
             this.bindShareMessage();
         }
-
-        
     }
 
-    // 2. 获取用户信息
+    /** 是否已经同意了隐私政策 */
+    isAgreedPrivacy()
+    {
+        if(!this.isWeChat)
+        {
+            return true;
+        }
+        return this.getStorageSync("agreedPrivacy");
+    }
+
+    // /** 是否可以在登录后请求弹出隐私政策弹窗 */
+    // canRequirePrivacyAfterLogin()
+    // {
+    //     return !this.isAgreedPrivacy() && this.needAuthInButtonInGame; 
+    // }
+
+    /** 登录后，调用弹出隐私政策弹窗 */
+    requirePrivacyAuthorizeAfterLogin(_callback : any)
+    {
+        if(!this.isWeChat)
+        {
+            _callback && _callback(true);
+            return;
+        }
+        
+        let self = this;
+
+        if(self.needPrivacyInButtonInGame)
+        {
+            _callback && _callback(true);
+            return;
+        }
+
+        self.requirePrivacyAuthorize(_callback);
+    }
+
+    /** 调用弹出隐私政策弹窗 */
+    requirePrivacyAuthorize(_callback : any)
+    {
+        let self = this;
+        try
+        {
+            self.wxSdk.requirePrivacyAuthorize({
+                success: () => {
+                  // 用户同意授权
+                  // runGame() 继续游戏逻辑
+                    console.error("wx.requirePrivacyAuthorize 调用成功:");
+                    _callback && _callback(true);
+                },
+                fail: () => {
+                    // 用户拒绝授权
+                    console.error("wx.requirePrivacyAuthorize 调用成功:");
+                    _callback && _callback(false);
+                }, 
+                complete: () => {}
+              })
+        }
+        catch(e)
+        {
+            _callback && _callback(false);
+        }
+    }
+    
+
+    /** 获取用户信息 */
     private getUserProfile(_callback : any) 
     {
         let self = this;
@@ -110,13 +269,28 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
                 self.onAuthSuccess(_callback); // 授权成功处理
             },
             fail: (err : any) => {
+
                 console.log("用户拒绝授权:", err);
-                self.showAuthTips(_callback); // 提示用户重新授权
+                console.log("授权失败，根据情况显示重新授权提示:");
+
+                if(self.authLevel == AUTH_LEVEL.MUST)
+                {
+
+                }
+                else if(self.authLevel == AUTH_LEVEL.MUST_WITH_SECOND)
+                {
+                    self.showAuthTips(_callback); // 提示用户重新授权
+                }
+                else if(self.authLevel == AUTH_LEVEL.MAYBE)
+                {
+                    _callback && _callback();
+                }
+                
             }
         });
     }
 
-    // 3. 授权成功处理
+    /** 授权成功 */
     private onAuthSuccess(_callback : any) {
         // 这里可跳转场景、更新 UI 或发送数据到服务器
         console.log("授权成功，用户昵称:", this._userInfo.nickName);
@@ -124,11 +298,13 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     }
 
     // 4. 显示重新授权提示
+    /** 授权失败，根据情况显示重新授权提示 */
     private showAuthTips(_callback : any) {
+
+        let self = this;
 
         console.log("显示重新授权提示:");
 
-        let self = this;
         self.wxSdk.showModal({
             title: '提示',
             content: '需要您授权才能正常使用',
@@ -138,25 +314,21 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
                 {
                     this.getUserProfile(_callback); // 再次尝试获取
                 }
-                else 
-                {
-                    if(!self.needAuth)
-                    {
-                        _callback && _callback();
-                    }
-                }
             },
             fail : (err : any) =>
             {
                 console.log("显示重新授权提示 失败 :",err);
-                if(!self.needAuth)
-                {
-                    _callback && _callback();
-                }
             }
         });
     }
 
+    /** 点击按钮 调用获取隐私授权的接口 */
+    getUserProfileFromExternal(_callback : any)
+    {
+        this.getUserProfile(_callback);
+    }
+
+    /** 获取玩家的权限设置相关 */
     private onGetSetting()
     {
         let self = this;
@@ -180,111 +352,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
 
         })
     }
-
-    // onGetSetting(code : any,_callback : any)
-    // {
-    //     let self = this;
-
-    //     self.wxSdk.getSetting({
-    //         success(res : any)
-    //         {
-    //             console.log("wx getSetting success : ",JSON.stringify(res));
-
-    //             if(res.authSetting["scope.userInfo"])
-    //             {
-    //                 self.wxSdk.getUserInfo({
-    //                     lang : "zh_CN",
-    //                     withCredentials : true,
-    //                     success : function(result : any)
-    //                     {
-    //                         console.log("get userinfo success : ",result);
-    //                         _callback && _callback();
-    //                     },
-    //                     fail : function(result : any)
-    //                     {
-    //                         console.log("get userinfo  fail : ",JSON.stringify(result));
-    //                         if(!self.useUserScope)
-    //                         {
-    //                             _callback && _callback(false);
-    //                             return;
-    //                         }
-    //                     }
-    //                 })
-    //             }
-    //             else
-    //             {
-    //                 console.log("cant get userInfo : ",self.useUserScope);
-
-    //                 if(!self.useUserScope)
-    //                 {
-    //                     _callback && _callback(false);
-    //                     return;
-    //                 }
-
-    //                 console.log("create button");
-
-    //                 //@ts-ignore
-    //                 let button = wx.createUserInfoButton({
-    //                     lang : "zh_CN",
-    //                     type : "text",
-    //                     text : "微信登录",
-    //                     style : {
-    //                         left : self.windowWidth / 2 - 50,
-    //                         top : self.windowHeight / 2 - 30,
-    //                         width : 100,
-    //                         height : 60,
-    //                         backgroundColor : "#c7a976",
-    //                         borderColor : "#5c5941",
-    //                         textAlign : "center",
-    //                         fontSize : 16,
-    //                         borderWidth : 4,
-    //                         borderRadius : 4,
-    //                         lineHeight : 60,
-    //                     }
-                        
-    //                 })
-
-    //                 button.onTap((res : any) =>
-    //                 {
-    //                     console.log("createUserInfoButton onTap : ",JSON.stringify(res));
-
-    //                     if(res.userInfo)
-    //                     {
-    //                         console.log("createUserInfoButton onTap res userInfo 1 : ",JSON.stringify(res.userInfo));
-
-    //                         button.destroy();
-    //                         _callback && _callback(true);
-    //                     }
-    //                     else
-    //                     {
-    //                         console.log("createUserInfoButton onTap res userInfo  2 : ");
-    //                         //@ts-ignore
-    //                         wx.showModal({
-    //                             title : "温馨提示",
-    //                             content : "需要您的用户信息登录游戏!",
-    //                             showCancel : false,
-    //                         })
-    //                     }
-    //                 })
-
-    //                 button.show();
-    //             }
-    //         },
-    //         fail(err : any)
-    //         {
-    //             console.log("wx getSetting fail : ",JSON.stringify(err));
-    //             if(!self.useUserScope)
-    //             {
-    //                 _callback && _callback(false);
-    //                 return;
-    //             }
-    //         }
-
-    //     })
     
-    // }
-
-
     getSystemInWeChat()
     {
             
@@ -319,6 +387,7 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
         this.isFullValid = this.compareVersion(this.currSDKVersion,"2.6.0")  >= 0;
         this.isBannerValid = this.compareVersion(this.currSDKVersion,"2.0.4")  >= 0;
         this.isCanSubscribeInNewApp = this.compareVersion(this.currSDKVersion,"2.32.1")  >= 0;
+        this.isCanOpenGameClub = this.compareVersion(this.currSDKVersion,"2.8.0")  >= 0;
     }
 
     vibrateAction()
@@ -368,16 +437,29 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
     }
 
     /** 内置弹框 */
-    showToast(_title : string,_icon : any)
+    showToast(_title : string,_icon : any,_duration : number = 1200)
     {
         if(!this.isWeChat)
         {
             return;
         }
 
+        if(!_icon)
+        {
+
+            this.wxSdk.showToast({
+                title : _title,
+            })
+        }
+        else
+        {
+            
         this.wxSdk.showToast({
             title : _title,
+            icon : _icon,
+            duration : _duration,
         })
+        }
     }
 
     /** 订阅游戏更新 */
@@ -478,6 +560,36 @@ export class WeChatTool extends BaseSingleton<WeChatTool> {
           })
     }
 
+    /** 进入打开游戏圈 */
+    openGameClub()
+    {
+        if(!this.isWeChat)
+        {
+            return;
+        }
+        if(!this.isCanOpenGameClub) 
+        {
+            return;
+        }
+    
+
+        try
+        {
+
+            this.wxSdk.openGameClub({
+                // 固定参数（0:通用页，1:排行榜，2:礼物页）
+                clubId: 0,
+                success: () => console.log('打开成功'),
+                fail: (err) => console.error('失败:', err)
+              });
+        }
+        catch(e)
+        {
+            console.log(e);
+            this.isCanOpenGameClub = false;
+            this.showToast("进入游戏圈失败",null);
+        }
+    }
     /** 打点，事件统计 */
     reportAnalytics(eventID : string,data : any = null)
     {

@@ -41,14 +41,14 @@
         "trimType": "auto",
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -0.5,
-        "offsetY": 0,
-        "trimX": 1,
-        "trimY": 1,
-        "width": 457,
-        "height": 252,
-        "rawWidth": 460,
-        "rawHeight": 254,
+        "offsetX": 0,
+        "offsetY": 8,
+        "trimX": 0,
+        "trimY": 0,
+        "width": 512,
+        "height": 325,
+        "rawWidth": 512,
+        "rawHeight": 341,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -71,7 +71,7 @@
     "type": "sprite-frame",
     "redirect": "7eb2e75a-4a26-44eb-a174-ed34245d9864@f9941",
     "compressSettings": {
-      "useCompressTexture": true,
+      "useCompressTexture": false,
       "presetId": "b6LiZsD/pKeroIWI5AXZkJ"
     }
   }

@@ -127,7 +127,7 @@ export class ScenePage extends Component {
             
             this.scheduleOnce(() =>
             {
-                SubpackageMgr.Instance().loadBundle("subGame",(_bundle : AssetManager.Bundle) =>
+                SubpackageMgr.ins.loadBundle("subGame",(_bundle : AssetManager.Bundle) =>
                 {
                     for (let i = 0; i < 40; i++) {
                         let val = Math.pow(2, i + 1);
@@ -150,7 +150,7 @@ export class ScenePage extends Component {
                         _bundle.load(`images/${arg}/texture`, Texture2D, (err,asset : Texture2D) => { 
                                 
                             GameParamsHelper.Instance().textures[arg] = asset;
-                            console.log(arg,"  ",asset);
+                            // console.log(arg,"  ",asset);
                             this.preLoadCnt++;
                     
                             if (i == 39) this.plScene(_bundle);

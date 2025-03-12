@@ -8,6 +8,7 @@ import UIHelper from "./tools/UIHelper.js";
 import { PermanentManager } from './PermanentManager';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import { WebBridge } from './WebBridge';
+import { UR } from './UR';
 /**
  * Predefined variables
  * Name = UIRelive
@@ -100,11 +101,13 @@ export class UIRelive extends Component {
         this.unschedule(this.coolDownAction);
         if (this.progressTween) this.progressTween.stop();
 
+        console.log("复活,广告")
         WebBridge.Instance().displayVideo("",true,(state) => {
             if (state) {
 
                 if (this.callback) this.callback(true);
-                UIHelper.hideUI("UIRelive");
+                // UIHelper.hideUI("UIRelive");
+                UR.ins.close("UIRelive");
             }
 
         })
@@ -120,7 +123,8 @@ export class UIRelive extends Component {
         if (this.progressTween) this.progressTween.stop();
 
         if (this.callback) this.callback(false);
-        UIHelper.hideUI("UIRelive");
+        // UIHelper.hideUI("UIRelive");
+        UR.ins.close("UIRelive");
 
     }
 }

@@ -1,6 +1,7 @@
 
 import { _decorator, Component, Node, game, Label, UIOpacity, tween } from 'cc';
 import { ScenePage } from './ScenePage';
+import { UR } from './UR';
 
 const { ccclass, property } = _decorator;
 
@@ -44,6 +45,8 @@ export class PermanentManager extends Component {
 
         this.setLoadingState(false,"start");
         this.tipOpacity.opacity = 0;
+
+        UR.ins.setFR(this.node);
 
     }
     start() {

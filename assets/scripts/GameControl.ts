@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, Texture2D, Vec3, resources, tween, randomRangeInt, CCInteger, MeshRenderer, AudioClip, AudioSource, Game, Enum, Prefab, ParticleSystem, v3 } from 'cc';
+import { _decorator, Component, Node, Texture2D, Vec3, resources, tween, randomRangeInt, CCInteger, MeshRenderer, AudioClip, AudioSource, Game, Enum, Prefab, ParticleSystem, v3, url } from 'cc';
 import { GameObjPool } from './GameObjPool';
 import { DataManager } from './tools/DataManager';
 import { UIControl } from './UIControl';
@@ -14,6 +14,7 @@ import { GameParamsHelper } from './GameParamsHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import { WebBridge } from './WebBridge';
 import { WeChatTool } from './WeChatTool';
+import { UR } from './UR';
 
 const { ccclass, property } = _decorator;
 
@@ -29,6 +30,7 @@ class TextureAbout {
         this.texture = _texture;
     }
 }
+
 
 @ccclass('GameControl')
 export class GameControl extends Component {
@@ -431,7 +433,8 @@ export class GameControl extends Component {
 
             PermanentManager.instance.setLoadingState(true,"bind");
 
-            UIHelper.displayUI(UIHelper.uiType.panel1, "UIBind", UIControl.Instance.node, true, (obj) => {
+            UR.ins.open("subGame","UIBind",UIControl.Instance.node,true,false,(obj) =>{
+            // UIHelper.displayUI(UIHelper.uiType.panel1, "UIBind", UIControl.Instance.node, true, (obj) => {
 
                 PermanentManager.instance.setLoadingState(false,"bind");
 
@@ -452,7 +455,8 @@ export class GameControl extends Component {
         if (this.isGameOver) return;
         this.isGameOver = true;
 
-        UIHelper.hideUI("UIBind");
+        // UIHelper.hideUI("UIBind");
+        UR.ins.close("UIBind");
         
         console.log("game is over");
 
@@ -461,9 +465,11 @@ export class GameControl extends Component {
         PermanentManager.instance.setLoadingState(true,"gameOver");
         this.scheduleOnce(() => {
 
-            UIHelper.hideUI("UIBind");
+            // UIHelper.hideUI("UIBind");
+            UR.ins.close("UIBind");
 
-            UIHelper.displayUI(UIHelper.uiType.panel1, "UIRelive", UIControl.Instance.node, true, (obj) => {
+            UR.ins.open("subGame","UIRelive",UIControl.Instance.node,true,false,(obj) =>{
+            // UIHelper.displayUI(UIHelper.uiType.panel1, "UIRelive", UIControl.Instance.node, true, (obj) => {
 
                 PermanentManager.instance.setLoadingState(false,"gameOver");
 
@@ -509,7 +515,8 @@ export class GameControl extends Component {
             WebBridge.Instance().loadVideo();
             
             PermanentManager.instance.setLoadingState(true,"settlement");
-            UIHelper.displayUI(UIHelper.uiType.panel1, "UISettlement", UIControl.Instance.node, true, (obj) => {
+            UR.ins.open("subGame","UISettlement",UIControl.Instance.node,true,false,(obj) =>{
+            // UIHelper.displayUI(UIHelper.uiType.panel1, "UISettlement", UIControl.Instance.node, true, (obj) => {
 
                 PermanentManager.instance.setLoadingState(false,"settlement");
 

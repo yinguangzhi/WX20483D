@@ -13,6 +13,7 @@ import { GameParamsHelper } from './GameParamsHelper';
 import { AUDIO_NAME, AudioMgr } from './tools/AudioMgr';
 import GameUtility from './tools/GameUtility';
 import { WebBridge } from './WebBridge';
+import { UR } from './UR';
 
 /**
  * Predefined variables
@@ -149,7 +150,8 @@ export class UIBind extends Component {
             }
             
             this.callback && this.callback(true);
-            UIHelper.hideUI("UIBind");
+            // UIHelper.hideUI("UIBind");
+            UR.ins.close("UIBind");
         });
     }
 
@@ -158,6 +160,7 @@ export class UIBind extends Component {
 
         if (!Observer.fireBtn("ad", 500)) return;
 
+        console.log("合成,广告")
         WebBridge.Instance().displayVideo("",true, (state) => {
 
             if (state) { 
@@ -170,7 +173,8 @@ export class UIBind extends Component {
 
                 this.callback && this.callback(true);
                 
-                UIHelper.hideUI("UIBind");
+                // UIHelper.hideUI("UIBind");
+                UR.ins.close("UIBind");
             }
             
         })

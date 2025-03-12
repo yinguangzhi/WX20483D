@@ -29,7 +29,7 @@ export class GameParamsHelper extends BaseSigleton<GameParamsHelper> {
     baseMaxValue = 128;
     bindCount = 0;
     textures = {};
-    ad = "Video is not ready!"
+    ad = "广告尚未加载!"
 
     shortcutChecked = false;
     isBinding = false;
